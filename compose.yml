@@ -14,6 +14,7 @@ services:
       REDASH_REDIS_URL: redis://redis:6379/0
       REDASH_DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
       REDASH_COOKIE_SECRET: supersecretkey
+      REDASH_SECRET_KEY: supersecretkey
       REDASH_HOST: "http://localhost:5000"
       REDASH_ENFORCE_CSRF: "false"
       REDASH_WEB_WORKERS: "4"
@@ -32,6 +33,7 @@ services:
     environment:
       REDASH_REDIS_URL: redis://redis:6379/0
       REDASH_DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
+      REDASH_SECRET_KEY: supersecretkey
     restart: unless-stopped
 
   scheduler:
@@ -45,6 +47,7 @@ services:
     environment:
       REDASH_REDIS_URL: redis://redis:6379/0
       REDASH_DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
+      REDASH_SECRET_KEY: supersecretkey
     restart: unless-stopped
 
   redis:
