@@ -1,0 +1,69 @@
+services:
+  server:
+    image: redash/redash:7.0.0.b18042
+    command: bash -c "python ./manage.py database create_tables && python ./manage.py users create_root admin@example.com Admin --password admin || true && python ./manage.py runserver --host 0.0.0.0 --port 5000"
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      REDASH_LOG_LEVEL: DEBUG
+      REDASH_REDIS_URL: redis://redis:6379/0
+      REDASH_DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
+      REDASH_COOKIE_SECRET: supersecretkey
+      REDASH_HOST: "http://localhost:5000"
+      REDASH_ENFORCE_CSRF: "false"
+      REDASH_WEB_WORKERS: "4"
+      REDASH_WEB_MAX_REQUESTS: "1000"
+      REDASH_WEB_MAX_REQUESTS_JITTER: "50"
+    restart: unless-stopped
+
+  worker:
+    image: redash/redash:7.0.0.b18042
+    command: worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      REDASH_REDIS_URL: redis://redis:6379/0
+      REDASH_DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
+    restart: unless-stopped
+
+  scheduler:
+    image: redash/redash:7.0.0.b18042
+    command: scheduler
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      REDASH_REDIS_URL: redis://redis:6379/0
+      REDASH_DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
+    restart: unless-stopped
+
+  redis:
+    image: redis:5.0-alpine
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:12
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data:
